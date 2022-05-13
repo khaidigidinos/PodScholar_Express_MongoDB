@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Auth - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>Account settings</h1>
+                            <span class="subheading">Change your account or password</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0">
+                    <div class="col-12">
+                        <h5 class="text-center">Email/Password</h5>
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Email</span>
+                          </div>
+                          <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Password</span>
+                          </div>
+                          <input type="password" class="form-control" id="password">
+                        </div>
+                        <div class="m-auto mt-3 text-center" style="width: 40%">
+                          <button class="btn btn-outline-primary" type="button" id="edit">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            function getInfo() {
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/account',
+                    contentType: 'application/json',
+                    statusCode: {
+                        404: () => {
+                            alert('User not found')
+                        }
+                    },
+                    success: (result) => {
+                        $('#email').val(result.email)
+                        $('#password').val(result.password)
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getInfo()
+
+            $('#edit').on('click', async function(e) {
+                if($('#email').val().length < 0) {
+                    alert('Please provide your email')
+                    return
+                }
+
+                if($('#password').val().length < 0) {
+                    alert('Please provide your password')
+                    return
+                }
+                await edit()
+            })
+
+            async function edit() {
+                let data = {
+                    email: $('#email').val(),
+                    password: $('#password').val()
+                }
+
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'PATCH',
+                    url: '/api/account',
+                    data: data,
+                    statusCode: {
+                        404: () => {
+                            alert('User not found')
+                        },
+                        400: () => {
+                            alert('Duplicated email')
+                        }
+                    },
+                    success: (result) => {
+                        localStorage.setItem('token', result.token)
+                        alert('Your account has been updated')
+                        $.LoadingOverlay('hide')
+
+                        window.location.href = '/account/settings?token=' + result.token
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+        </script>
+    </body>
+</html>

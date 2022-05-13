@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Account - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>See your account</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row gx-4 gx-lg-5 justify-content-center w-100 mr-0">
+                    <div class="col-9">
+                        <br>
+                        <br>
+                        <div class="row w-100 mt-3 justify-content-center" id="feed">
+                            <a href="/account/settings?token=<%= user.token %>" class="text-center"><button class="btn btn-lg btn-outline-primary">Edit email and/or password</button></a>
+                            <a href="/account/details?token=<%= user.token %>" class="text-center"><button class="btn btn-lg btn-outline-primary mt-3">Edit personal information</button></a>
+                            <a href="/users/first-name-last-name?id=<%= user.id %>&token=<%=user.token%>" class="text-center"><button class="btn btn-lg btn-outline-primary mt-3">Your profile</button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+    </body>
+</html>

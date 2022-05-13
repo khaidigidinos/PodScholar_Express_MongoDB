@@ -1,0 +1,55 @@
+
+<% if (!isAuthenticated) { %>
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" href="/">PodScholar</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation" id="menuCollapse">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse mt-1" id="navbarResponsive">
+            <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/pages/about">About</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/pages/rules">Rules</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/pages/howtoupload">How to upload?</a></li>
+                <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/auth">Auth</a></li>
+            </ul>
+        </div>
+    </div>
+<%} else {%>
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" href="/?token=<%= user.token %>">PodScholar</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation" id="menuCollapse">
+            Menu
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse mt-1" id="navbarResponsive">
+            <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                <li class="nav-item">
+                    <div class="drop-down">
+                    <button class="btn btn-small btn-dark" type="button" id="dropdownMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <% if(user.firstName) { %>
+                            Hello, <%= user.firstName %> <%= user.lastName %>
+                        <% } else { %>
+                            Hello
+                        <% } %>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenu">
+                        <a href="/?token=<%= user.token %>"><button class="w-100 dropdown-item">Home</button></a>
+                        <a href="/pages/rules?token=<%= user.token %>"><button class="w-100 dropdown-item">Rules</button></a>
+                        <a href="/pages/howtoupload?token=<%= user.token %>"><button class="w-100 dropdown-item">How to upload?</button></a>
+                        <a href="/podcasts/create?token=<%= user.token %>"><button class="w-100 dropdown-item">Upload</button></a>
+                        <a href="/account?token=<%= user.token %>"><button class="w-100 dropdown-item">Account</button></a>
+                        <a href="#!"><button class="w-100 dropdown-item" onclick="logout()">Log out</button></a>
+                        <script>
+                            function logout() {
+                                localStorage.setItem('token', 'no_token')
+                                window.location.href = '/'
+                            }
+                        </script>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+<% } %>

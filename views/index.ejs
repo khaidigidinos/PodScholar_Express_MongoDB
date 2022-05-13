@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Home - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>This is PodScholar Home</h1>
+                            <span class="subheading">Find what you want to listen to...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row gx-4 gx-lg-5 justify-content-center w-100 mr-0">
+                    <% include commonSideMenu%>
+                    <div class="col-9">
+                        <br>
+                        <br>
+                        <div class="input-group">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Search</span>
+                          </div>
+                          <input type="text" class="form-control" id="searchBar">
+                        </div>
+
+                        <h5 class="mt-3 mb-3">Recent uploads</h5>
+                        <div class="row w-100 mt-3" id="feed">
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            function getRecents() {
+                $.LoadingOverlay('show')
+
+                $.ajax({
+                    type: "GET",
+                    url: "/api/",
+                    success: (result) => {
+
+                        for(let i = 0; i < result.ids.length; i++) {
+                            let id = result.ids[i]
+                            let pc = result.list.filter(p => p._id === id)[0]
+                            $('#feed').append(`
+                                <div class="col-12 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                ${pc.title}
+                                            </h5>
+                                            <p class="card-text m-0">Id: ${pc._id}</p>
+                                            <p class="card-text m-0">Author: ${pc.author_names.join(', ')}</p>
+                                            <p class="card-text m-0">Tags: ${pc.tags.join(', ')}</p>
+                                            <p class="card-text m-0">Scientific Disciplines: ${pc.scientific_disciplines.join(', ')}</p>
+                                            <p class="card-text m-0">Published date: ${pc.date}</p>
+                                            <p class="card-text m-0">DOI: ${pc.doi}</p>
+                                            <br />
+                                            <p class="card-text m-0">Likes: ${pc.likes}</p>
+                                            <p class="card-text m-0 mb-3">Saved: ${pc.saved}</p>
+                                            <a href="/podcasts/podcast-title?id=${pc._id}&token=${localStorage.getItem('token')}"><button class='btn btn-outline-primary mb-2'>Details</button></a>
+                                        <div class="card-footer">
+                                            <audio controls>
+                                                <source src="${pc.audio}" type="audio/mpeg">
+                                            </audio>
+                                        </div>
+                                    </div>
+                                </div>
+                            `)
+                        }
+                        $.LoadingOverlay('hide')
+                    }, 
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getRecents()
+
+
+            $('#searchBar').on('keydown', async function(e) {
+                if(e.keyCode === 13 && $(this).val().length > 0) {
+                    await doSearch()
+                }
+            })
+
+            async function doSearch() {
+                $.LoadingOverlay('show')
+                $('#feed').empty()
+                $.ajax({
+                    type: "GET",
+                    url: `/api/search/keyword/${$('#searchBar').val()}`,
+                    success: (result) => {
+                        if(result.length === 0) $('#feed').append('<small>No results</small>')
+                        for(let i = 0; i < result.length; i++) {
+                            let pc = result[i]
+                            $('#feed').append(`
+                                <div class="col-12 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                ${pc.title}
+                                            </h5>
+                                            <p class="card-text m-0">Id: ${pc._id}</p>
+                                            <p class="card-text m-0">Author: ${pc.author_names.join(', ')}</p>
+                                            <p class="card-text m-0">Tags: ${pc.tags.join(', ')}</p>
+                                            <p class="card-text m-0">Scientific Disciplines: ${pc.scientific_disciplines.join(', ')}</p>
+                                            <p class="card-text m-0">Published date: ${pc.date}</p>
+                                            <p class="card-text m-0">DOI: ${pc.doi}</p>
+                                            <br />
+                                            <p class="card-text m-0">Likes: ${pc.likes}</p>
+                                            <p class="card-text m-0 mb-3">Saved: ${pc.saved}</p>
+                                            <a href="/podcasts/podcast-title?id=${pc._id}&token=${localStorage.getItem('token')}"><button class='btn btn-outline-primary mb-2'>Details</button></a>
+                                        <div class="card-footer">
+                                            <audio controls>
+                                                <source src="${pc.audio}" type="audio/mpeg">
+                                            </audio>
+                                        </div>
+                                    </div>
+                                </div>
+                            `)
+                        }
+                        $.LoadingOverlay('hide')
+                    }, 
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            $('#dateSearch').on('keydown', async function(e) {
+                if(e.keyCode === 13 && $(this).val().length > 0) {
+                    await searchByDate()
+                }
+            })
+
+            async function searchByDate() {
+                $.LoadingOverlay('show')
+                $('#feed').empty()
+                $.ajax({
+                    type: "GET",
+                    url: `/api/search/date/${$('#dateSearch').val().replaceAll('/', '_')}`,
+                    success: (result) => {
+                        if(result.length === 0) $('#feed').append('<small>No results</small>')
+                        for(let i = 0; i < result.length; i++) {
+                            let pc = result[i]
+                            $('#feed').append(`
+                                <div class="col-12 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                ${pc.title}
+                                            </h5>
+                                            <p class="card-text m-0">Id: ${pc._id}</p>
+                                            <p class="card-text m-0">Author: ${pc.author_names.join(', ')}</p>
+                                            <p class="card-text m-0">Tags: ${pc.tags.join(', ')}</p>
+                                            <p class="card-text m-0">Scientific Disciplines: ${pc.scientific_disciplines.join(', ')}</p>
+                                            <p class="card-text m-0">Published date: ${pc.date}</p>
+                                            <p class="card-text m-0">DOI: ${pc.doi}</p>
+                                            <br />
+                                            <p class="card-text m-0">Likes: ${pc.likes}</p>
+                                            <p class="card-text m-0 mb-3">Saved: ${pc.saved}</p>
+                                            <a href="/podcasts/podcast-title?id=${pc._id}&token=${localStorage.getItem('token')}"><button class='btn btn-outline-primary mb-2'>Details</button></a>
+                                        <div class="card-footer">
+                                            <audio controls>
+                                                <source src="${pc.audio}" type="audio/mpeg">
+                                            </audio>
+                                        </div>
+                                    </div>
+                                </div>
+                            `)
+                        }
+                        $.LoadingOverlay('hide')
+                    }, 
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>

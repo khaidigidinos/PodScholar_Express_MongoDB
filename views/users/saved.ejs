@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Saved Podcasts - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>See an author's saved podcasts</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0 text-center" id="content">
+                    
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            let pr = getParams()
+            let id = pr.id
+
+            function getData() {
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'GET',
+                    url: `/api/users/${id}/podcasts/saved`,
+                    statusCode: {
+                        404: () => {
+                            alert('Not found')
+                            $.LoadingOverlay('hide')
+                        },
+                        401: () => {
+                            alert('Unauthorized')
+                            $.LoadingOverlay('hide')
+                        }
+                    },
+                    success: (result) => {
+                        let c = $('#content')
+                        c.append(`<div><a href="/users/first-name-last-name?token=${localStorage.getItem('token')}&id=${id}"><button class="btn btn-outline-primary btn-sm mt-3 mb-3" style="width: 20%">Back to author profile</button></a></div>`)
+                        result.forEach((pc) => {
+                            $('#content').append(`
+                                <div class="col-4 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                ${pc.title}
+                                            </h5>
+                                            <p class="card-text m-0">Id: ${pc._id}</p>
+                                            <p class="card-text m-0">Author: ${pc.author_names.join(', ')}</p>
+                                            <p class="card-text m-0">Tags: ${pc.tags.join(', ')}</p>
+                                            <p class="card-text m-0">Scientific Disciplines: ${pc.scientific_disciplines.join(', ')}</p>
+                                            <p class="card-text m-0">Published date: ${pc.date}</p>
+                                            <p class="card-text m-0">DOI: ${pc.doi}</p>
+                                            <br />
+                                            <p class="card-text m-0">Likes: ${pc.likes}</p>
+                                            <p class="card-text m-0 mb-3">Saved: ${pc.saved}</p>
+                                            <a href="/podcasts/podcast-title?id=${pc._id}&token=${localStorage.getItem('token')}"><button class='btn btn-outline-primary mb-2'>Details</button></a>
+                                        <div class="card-footer">
+                                            <audio controls>
+                                                <source src="${pc.audio}" type="audio/mpeg">
+                                            </audio>
+                                        </div>
+                                    </div>
+                                </div>
+                            `)
+                        })
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getData()
+
+        </script>
+    </body>
+</html>

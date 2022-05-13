@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Podcast Details - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>Look what a Podcast contains...</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0 text-center" id="content">
+                    
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            let pr = getParams()
+
+            let id = pr.id
+
+            function getData() {
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/podcasts/' + id,
+                    statusCode: {
+                        404: () => { alert('Not found') },
+                        401: () => { alert('Unauthorized') }
+                    },
+                    success: (pc) => {
+                        let c = $('#content')
+                        c.append(`
+                            <div class="card w-40">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        ${pc.title}
+                                    </h5>
+                                    <p class="card-text m-0">Id: ${pc._id}</p>
+                                    <p class="card-text m-0">Tags: ${pc.tags.join(', ')}</p>
+                                    <p class="card-text m-0">Scientific Disciplines: ${pc.scientific_disciplines.join(', ')}</p>
+                                    <p class="card-text m-0">Published date: ${pc.date}</p>
+                                    <p class="card-text m-0">DOI: ${pc.doi}</p>
+                                    <br />
+                                    <p class="card-text m-0">Likes: ${pc.likes}</p>
+                                    <p class="card-text m-0 mb-3">Saved: ${pc.saved}</p>
+                                    <button class="btn btn-outline-primary mb-2" onclick="like()" ${pc.canlike ? '' : 'disabled'}>Like</button>
+                                    <button class="btn btn-outline-primary mb-2" onclick="save()" ${pc.cansave ? '' : 'disabled'}>Save</button>
+                                    <a href="/podcasts/podcast-title/edit?id=${pc._id}&token=${localStorage.getItem('token')}"><button class="btn btn-outline-primary mb-2">Edit</button></a>
+                                <div class="card-footer">
+                                    <audio controls>
+                                        <source src="${pc.audio}" type="audio/mpeg">
+                                    </audio>
+                                </div>
+                                </div>
+                            </div>
+                            <h5 class="mt-3">Authors</h5>
+                        `)
+
+                        for(let i = 0; i < pc.author_emails.length; i++) {
+                            let cc = `
+                                <span class="mb-1">
+                                    Author: ${pc.author_names[i]} 
+                            `
+
+                            if(pc.author_infos[i] !== null) {
+                                cc += `<button class="btn btn-outline-primary btn-sm" ${pc.author_infos[i].can_follow ? '' : 'disabled'} onclick='follow("${pc.author_infos[i].id}")'>Follow</button>`
+                                cc += `<a href="/users/first-name-last-name?id=${pc.author_infos[i].id}&token=${localStorage.getItem('token')}"><button class="ml-2 btn btn-outline-primary btn-sm">Profile</button></a>`
+                            }
+
+                            cc += '</span>'
+
+                            c.append(cc)
+                        }
+
+                        c.append('<hr><h5 class="mt-3">Report</h5>')
+                        if(pc.reports.length === 0) {
+                            c.append('<small>No reports</small>')
+                        } else {
+                            for(let i = 0; i < pc.reports.length; i++) {
+                                c.append(`<div class="class"><p>${pc.reports[i]}</p></div>`)
+                            }
+                        }
+
+                        c.append('<hr><h5 class="mt-3">Send your report</h5>')
+                        c.append(`<small>We're working on this</small>`)
+                        c.append('<textarea style="width: 60%"></textarea><br>')
+                        c.append('<div style="width: 40%"><button class="btn btn-outline-primary mt-3" style="width: 100%" onclick="sendReport()">Send report</button></div>')
+
+                        c.append('<hr><h5 class="mt-3">Comments</h5>')
+                        c.append(`<small>We're working on this</small>`)
+
+                        c.append('<hr><h5 class="mt-3">You might be interested</h5>')
+                        c.append(`<small>We're working on this</small>`)
+
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getData()
+
+            async function like() {
+                $.LoadingOverlay('shows')
+                $.ajax({
+                    type: 'PATCH',
+                    url: `/api/podcasts/${id}/actions/like`,
+                    statusCode: {
+                        404: () => { alert('Not found') },
+                        401: () => { alert('Unauthorized') }
+                    },
+                    success: () => {
+                        window.location.reload()
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            function save() {
+                $.LoadingOverlay('shows')
+                $.ajax({
+                    type: 'PATCH',
+                    url: `/api/podcasts/${id}/actions/subscribe`,
+                    statusCode: {
+                        404: () => { alert('Not found') },
+                        401: () => { alert('Unauthorized') }
+                    },
+                    success: () => {
+                        window.location.reload()
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            function follow(userId) {
+                $.LoadingOverlay('shows')
+                $.ajax({
+                    type: 'POST',
+                    url: `/api/users/${userId}/actions/follow`,
+                    statusCode: {
+                        404: () => { alert('Not found') },
+                        401: () => { alert('Unauthorized') }
+                    },
+                    success: () => {
+                        window.location.reload()
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            function sendReport() {
+
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Auth - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>Account details</h1>
+                            <span class="subheading">Your personal information</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0">
+                    <div class="col-12">
+                        <h5 class="text-center">Personal Information</h5>
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">First name</span>
+                          </div>
+                          <input type="text" class="form-control" id="firstName">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Last name</span>
+                          </div>
+                          <input type="text" class="form-control" id="lastName">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Scientific Disciplines (separated by comma)</span>
+                          </div>
+                          <input type="text" class="form-control" id="scientific_disciplines">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Tags (separated by comma)</span>
+                          </div>
+                          <input type="text" class="form-control" id="tags">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Current affiliation</span>
+                          </div>
+                          <input type="text" class="form-control" id="current_affiliation">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Academic Email</span>
+                          </div>
+                          <input type="email" class="form-control" id="academic_email">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Bio</span>
+                          </div>
+                          <input type="text" class="form-control" id="bio">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Proof of academic affiliation</span>
+                          </div>
+                          <input type="text" class="form-control" id="proof_url">
+                        </div>
+
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Research profile</span>
+                          </div>
+                          <input type="text" class="form-control" id="research_profile">
+                        </div>
+
+                        <div class="m-auto mt-3 text-center" style="width: 40%">
+                          <button class="btn btn-outline-primary" type="button" id="edit">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            function getInfo() {
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/account',
+                    contentType: 'application/json',
+                    statusCode: {
+                        404: () => {
+                            alert('User not found')
+                        }
+                    },
+                    success: (result) => {
+                        $('#firstName').val(result.firstName)
+                        $('#lastName').val(result.lastName)
+                        $('#tags').val(result.tags.join(','))
+                        $('#scientific_disciplines').val(result.scientific_disciplines.join(','))
+                        $('#current_affiliation').val(result.current_affiliation)
+                        $('#academic_email').val(result.academic_email)
+                        $('#proof_url').val(result.proof_url)
+                        $('#bio').val(result.bio)
+                        $('#research_profile').val(result.research_profile)
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getInfo()
+
+            $('#edit').on('click', async function(e) {
+                if($('#firstName').val().length < 0) {
+                    alert('Please provide your first name')
+                    return
+                }
+
+                if($('#lastName').val().length < 0) {
+                    alert('Please provide your last name')
+                    return
+                }
+
+                if($('#scientific_disciplines').val().length < 0) {
+                    alert('Please provide at least one scientific discipline')
+                    return
+                }
+
+                if($('#tags').val().length < 0) {
+                    alert('Please provide at least one tag')
+                    return
+                }
+
+                await edit()
+            })
+
+            async function edit() {
+                let data = {
+                    firstName: $('#firstName').val(),
+                    lastName: $('#lastName').val(),
+                    tags: $('#tags').val().split(','),
+                    scientific_disciplines: $('#scientific_disciplines').val().split(','),
+                    current_affiliation: $('#current_affiliation').val(),
+                    academic_email: $('#academic_email').val(),
+                    proof_url: $('#proof_url').val(),
+                    bio: $('#bio').val(),
+                    research_profile: $('#research_profile').val()
+                }
+
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'PATCH',
+                    url: '/api/account',
+                    data: JSON.stringify(data),
+                    statusCode: {
+                        404: () => {
+                            alert('User not found')
+                        },
+                        400: () => {
+                            alert('Duplicated email')
+                        }
+                    },
+                    success: (result) => {
+                        localStorage.setItem('token', result.token)
+                        alert('Your account has been updated')
+                        $.LoadingOverlay('hide')
+
+                        window.location.href = '/account/details?token=' + result.token
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+        </script>
+    </body>
+</html>

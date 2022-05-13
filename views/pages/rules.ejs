@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Rules - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>PodScholar Rules</h1>
+                            <span class="subheading">Upload. Listen. Share.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+						<p><strong>Hello! You've made it to the rules page of PodScholar, here are the desingated rules for the site below.</strong></p>
+                        <p>1.  <u>One podcast per published work.</u></p>
+						<img src="/images/ratio.png" alt="Ratio" style="width:128px;height:128px;">
+						<p>2.  <u>20 Minute Maximum Length Podcast.</u></p>
+						<img src="/images/time.png" alt="Time" style="width:128px;height:128px;">
+						<p>3.  <u>Podcasters much be an author on the published work.</u></p>
+						<img src="/images/author.jpeg" alt="Author" style="width:180px;height:128px;">
+						<p>4.  <u>Published works must have a registred DOI#.</u></p>
+						<img src="/images/doi.gif" alt="DOI" style="width:500px;height:110px;">
+						<p>5.  <u>Audio file must be mp3 or mp4 format to upload.</u></p>
+						<img src="/images/audiofile.png" alt="DOI" style="width:500px;height:130px;">
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+    </body>
+</html>

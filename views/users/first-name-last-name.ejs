@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>User profile - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>See an author profile</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0 text-center" id="content">
+                    
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            let pr = getParams()
+            let id = pr.id
+
+            function getData() {
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/users/' + id,
+                    statusCode: {
+                        404: () => {
+                            alert('Not found')
+                            $.LoadingOverlay('hide')
+                        },
+                        401: () => {
+                            alert('Unauthorized')
+                            $.LoadingOverlay('hide')
+                        }
+                    },
+                    success: (result) => {
+                        let c = $('#content')
+                        c.append('<h5>Personal Information</h5>')
+                        c.append(`<span>First name: ${result.firstName}</span>`)
+                        c.append(`<span>Last name: ${result.lastName}</span>`)
+                        c.append(`<span>Scientific disciplines: ${result.scientific_disciplines.join(', ')}</span>`)
+                        c.append(`<span>Tags: ${result.tags.join(', ')}</span>`)
+                        c.append(`<span>Current affiliation: ${result.current_affiliation ? result.current_affiliation : 'N/A' }</span>`)
+                        c.append(`<span>Academic email: ${result.academic_email ? result.academic_email : 'N/A' }</span>`)
+                        c.append(`<span>Proof of academic affiliation: ${result.proof_url ? result.proof_url : 'N/A' }</span>`)
+                        c.append(`<span>Bio: ${result.bio ? result.bio : 'N/A' }</span>`)
+                        c.append(`<span>Research profile: ${result.research_profile ? result.research_profile : 'N/A' }</span>`)
+                        c.append(`<button class="btn btn-outline-primary btn-sm mt-3" style="width: 10%" ${result.can_follow ? '' : 'disabled'} onclick="follow('${id}')">Follow</button>`)
+                        c.append(`<div><a href="/users/first-name-last-name/podcasts/uploaded?token=${localStorage.getItem('token')}&id=${id}"><button class="btn btn-outline-primary btn-sm mt-3" style="width: 20%">See uploaded podcasts</button></a></div>`)
+                        c.append(`<div><a href="/users/first-name-last-name/podcasts/liked?token=${localStorage.getItem('token')}&id=${id}"><button class="btn btn-outline-primary btn-sm mt-3" style="width: 20%">See liked podcasts</button></a></div>`)
+                        c.append(`<div><a href="/users/first-name-last-name/podcasts/saved?token=${localStorage.getItem('token')}&id=${id}"><button class="btn btn-outline-primary btn-sm mt-3 mb-3" style="width: 20%">See saved podcasts</button></a></div>`)
+                        c.append('<hr />')
+                        c.append('<h5>Followed</h5>')
+
+                        if(result.followed && result.followed.length > 0) {
+                            result.followed.forEach(f => {
+                                c.append(`<span>Author: ${f.firstName} ${f.lastName} (${f.email}) <a href="/users/first-name-last-name?id=${f._id}&token=${localStorage.getItem('token')}"><button class="btn btn-outline-primary btn-sm">Profile</button></a></span>`)
+                            })
+                        } else {
+                            c.append('<small>No info</small>')
+                        }
+
+                        c.append('<hr class="mt-3" />')
+                        c.append('<h5>Following</h5>')
+                        if(result.following && result.following.length > 0) {
+                            result.following.forEach(f => {
+                                c.append(`<span>Author: ${f.firstName} ${f.lastName} (${f.email}) <a href="/users/first-name-last-name?id=${f._id}&token=${localStorage.getItem('token')}"><button class="btn btn-outline-primary btn-sm">Profile</button></a></span>`)
+                            })
+                        } else {
+                            c.append('<small>No info</small>')
+                        }
+
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getData()
+
+
+            function follow(userId) {
+                $.LoadingOverlay('shows')
+                $.ajax({
+                    type: 'POST',
+                    url: `/api/users/${userId}/actions/follow`,
+                    statusCode: {
+                        404: () => { alert('Not found') },
+                        401: () => { alert('Unauthorized') }
+                    },
+                    success: () => {
+                        window.location.reload()
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>

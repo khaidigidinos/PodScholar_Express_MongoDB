@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Edit PodCast - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>Edit YOUR podcast</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0">
+                    <div class="col-12">
+                        <h5 class="text-center">Podcast</h5>
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Title</span>
+                          </div>
+                          <input type="text" class="form-control" id="title">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Description</span>
+                          </div>
+                          <input type="text" class="form-control" id="description">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">URL to audio file</span>
+                          </div>
+                          <input type="text" class="form-control" id="audio">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">URL to bibtex file</span>
+                          </div>
+                          <input type="text" class="form-control" id="bibtex">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">URL of manuscript</span>
+                          </div>
+                          <input type="text" class="form-control" id="url_manuscript">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">DOI</span>
+                          </div>
+                          <input type="text" class="form-control" id="doi">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Scientific disciplines</span>
+                          </div>
+                          <input type="text" class="form-control" id="scientific_disciplines">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Tags</span>
+                          </div>
+                          <input type="text" class="form-control" id="tags">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Authors' names</span>
+                          </div>
+                          <input type="text" class="form-control" id="author_names">
+                        </div>
+
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Authors' emails</span>
+                          </div>
+                          <input type="text" class="form-control" id="author_emails">
+                        </div>
+
+                        <div class="m-auto mt-3 text-center" style="width: 40%">
+                          <button class="btn btn-outline-primary" type="button" id="edit">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            let pr = getParams()
+
+            let id = pr.id
+
+            function getData() {
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'GET',
+                    url: '/api/podcasts/' + id,
+                    statusCode: {
+                        404: () => { alert('Not found') },
+                        401: () => { alert('Unauthorized') }
+                    },
+                    success: (pc) => {
+                        $('#title').val(pc.title)
+                        $('#description').val(pc.description)
+                        $('#audio').val(pc.audio)
+                        $('#bibtex').val(pc.bibtex)
+                        $('#url_manuscript').val(pc.url_manuscript)
+                        $('#doi').val(pc.doi)
+                        $('#scientific_disciplines').val(pc.scientific_disciplines.join(','))
+                        $('#tags').val(pc.tags.join(','))
+                        $('#author_names').val(pc.author_names.join(','))
+                        $('#author_emails').val(pc.author_emails.join(','))
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            getData()
+
+            $('#edit').on('click', async function(e) {
+                if($('#title').val().length <= 0) {
+                    alert('Please provide title')
+                    return
+                }
+
+                if($('#audio').val().length < 0) {
+                    alert('Plesae provide URL to audio file')
+                    return
+                }
+
+                if($('#author_names').val().split(',').length != $('#author_emails').val().split(',').length) {
+                    alert(`Number of author names does not match number of author emails`)
+                    return
+                }
+
+                await edit()
+            })
+
+            async function edit() {
+                let data = {
+                    title: $('#title').val(),
+                    description: $('#description').val(),
+                    audio: $('#audio').val(),
+                    bibtex: $('#bibtex').val(),
+                    url_manuscript: $('#url_manuscript').val(),
+                    doi: $('#doi').val(),
+                    scientific_disciplines: $('#scientific_disciplines').val().split(','),
+                    tags: $('#tags').val().split(','),
+                    author_names: $('#author_names').val().split(','),
+                    author_emails: $('#author_emails').val().split(',')
+                }
+
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'PATCH',
+                    url: '/api/podcasts/' + id,
+                    data: JSON.stringify(data),
+                    statusCode: {
+                        404: () => {
+                            alert('Not found')
+                        },
+                        401: () => {
+                            alert('Unauthorize or you are not one of the authors')
+                        }
+                    },
+                    success: (result) => {
+                        alert('You have updated this podcast!')
+                        window.location.reload()
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>

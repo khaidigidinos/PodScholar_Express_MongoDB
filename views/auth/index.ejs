@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include meta.ejs%>
+        <title>Auth - PodScholar</title>
+        <% include commonHead%>
+        <% include starstyle%>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <% include navbar%>
+        </nav>
+        <header class="masthead" style="background-image: url('/images/about-bg.jpeg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="page-heading">
+                            <h1>Sign up, sign in or try to get your password</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="mb-4">
+            <div class="w-100 m-0">
+                <div class="row justify-content-center w-100 mr-0">
+                    <div class="col-12">
+                        <h5 class="text-center">SIGN UP</h5>
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Email</span>
+                          </div>
+                          <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Password</span>
+                          </div>
+                          <input type="password" class="form-control" id="password">
+                        </div>
+                        <div class="m-auto mt-3 text-center" style="width: 40%">
+                          <button class="btn btn-outline-primary" type="button" id="signup">Sign up</button>
+                        </div>
+
+                        <h5 class="text-center mt-3">SIGN IN</h5>
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Email</span>
+                          </div>
+                          <input type="email" class="form-control" id="emailSignin">
+                        </div>
+                        <div class="input-group m-auto mt-3" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Password</span>
+                          </div>
+                          <input type="password" class="form-control" id="passwordSignin">
+                        </div>
+                        <div class="m-auto mt-3 text-center" style="width: 40%">
+                          <button class="btn btn-outline-primary" type="button" id="signin">Sign in</button>
+                        </div>
+
+                        <h5 class="text-center mt-3">FORGOT PASSWORD</h5>
+                        <div class="input-group m-auto" style="width: 40%">
+                          <div class="input-group-prepend">
+                            <span class="input-group-text">Email</span>
+                          </div>
+                          <input type="email" class="form-control" id="emailForgot">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <% include commonBody%>
+        <script>
+            $('#signup').on('click', async function(e) {
+                if($('#email').val().length <= 0) {
+                    $.toast({
+                        heading: "Email missing",
+                        text: "Please, provide your email",
+                        showHideTransition: "slide",
+                        icon: "error"
+                    })
+                    return
+                }
+
+                if($('#password').val().length < 0) {
+                    $.toast({
+                        heading: "Password missing",
+                        text: "Please, provide your password",
+                        showHideTransition: "slide",
+                        icon: "error"
+                    })
+                    return
+                }
+
+                await signup()
+            })
+
+            async function signup() {
+                let data = {
+                    email: $('#email').val(),
+                    password: $('#password').val(),
+                    firstName: '',
+                    lastName: '',
+                    scientific_disciplines: [],
+                    tags: [],
+                    current_affiliation: '',
+                    academic_email: '',
+                    bio: '',
+                    research_profile: '',
+                    is_verified_author: false,
+                    uploads: [],
+                    saves: [],
+                    likes: [],
+                    following: [],
+                    followed: [],
+                    proof_url: ''
+                }
+
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/auth/signup',
+                    data: JSON.stringify(data),
+                    statusCode: {
+                        400: function() {
+                            alert('An account with your provided email has been registered!')
+                            $.LoadingOverlay('hide')
+                        }
+                    },
+                    success: (result) => {
+                        $.LoadingOverlay('hide')
+                        $.toast({
+                            heading: "You are ready to sign in",
+                            text: "You are ready to sign in",
+                            showHideTransition: "slide",
+                            icon: "success"
+                        })
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+
+            $('#signin').on('click', async function(e) {
+                if($('#emailSignin').val().length <= 0) {
+                    $.toast({
+                        heading: "Email missing",
+                        text: "Please, provide your email",
+                        showHideTransition: "slide",
+                        icon: "error"
+                    })
+                    return
+                }
+
+                if($('#passwordSignin').val().length < 0) {
+                    $.toast({
+                        heading: "Password missing",
+                        text: "Please, provide your password",
+                        showHideTransition: "slide",
+                        icon: "error"
+                    })
+                    return
+                }
+
+                await signin()
+            })
+
+            async function signin() {
+                let data = {
+                    email: $('#emailSignin').val(),
+                    password: $('#passwordSignin').val(),
+                }
+
+                $.LoadingOverlay('show')
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/auth/signin',
+                    data: data,
+                    statusCode: {
+                        404: function() {
+                            alert('Cannot login with your provided information')
+                            $.LoadingOverlay('hide')
+                        }
+                    },
+                    success: (result) => {
+                        localStorage.setItem('token', result.token)
+                        window.location.replace('/?token=' + result.token)
+                        $.LoadingOverlay('hide')
+                    },
+                    error: () => {
+                        $.LoadingOverlay('hide')
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>
