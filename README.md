@@ -16,3 +16,64 @@ To make some simplicities to this project, there are some notable things:
 - Forgot password is not supported, although it appears on the front-end.
 
 Take a visit at: https://pods-cholar.herokuapp.com/
+This project is being deployed to Heroku
+
+There are some addtional APIs besides those specified in the requirements:
+```html
+router.get('/users/:id/podcasts/authored', async function(req, res, next) {
+	let db = await getDb()
+	let user = await db.collection('user').findOne({ _id: new ObjectID(req.user.id) })
+
+	if(!user) {
+		res.status(401)
+		return
+	}
+
+	let other = await db.collection('user').findOne({ _id: new ObjectID(req.params.id) })
+
+	await db.collection('podcasts').find({ _id: { $in: other.uploads.map((e) => new ObjectID(e) ) }}).toArray(function(err, result) {
+		if(err) console.log(err)
+		else {
+			res.status(200).json(result)
+		}
+	})
+})
+
+router.get('/users/:id/podcasts/liked', async function(req, res, next) {
+	let db = await getDb()
+	let user = await db.collection('user').findOne({ _id: new ObjectID(req.user.id) })
+
+	if(!user) {
+		res.status(401)
+		return
+	}
+
+	let other = await db.collection('user').findOne({ _id: new ObjectID(req.params.id) })
+
+	await db.collection('podcasts').find({ _id: { $in: other.likes.map((e) => new ObjectID(e) ) }}).toArray(function(err, result) {
+		if(err) console.log(err)
+		else {
+			res.status(200).json(result)
+		}
+	})
+})
+
+router.get('/users/:id/podcasts/saved', async function(req, res, next) {
+	let db = await getDb()
+	let user = await db.collection('user').findOne({ _id: new ObjectID(req.user.id) })
+
+	if(!user) {
+		res.status(401)
+		return
+	}
+
+	let other = await db.collection('user').findOne({ _id: new ObjectID(req.params.id) })
+
+	await db.collection('podcasts').find({ _id: { $in: other.saves.map((e) => new ObjectID(e) ) }}).toArray(function(err, result) {
+		if(err) console.log(err)
+		else {
+			res.status(200).json(result)
+		}
+	})
+})
+```
